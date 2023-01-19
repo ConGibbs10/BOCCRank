@@ -4,7 +4,7 @@
 #- nreps (integer): number of replicates for tune
 #- seed (integer): seed for reproducibility
 
-library(LPCTA)
+library(BOCCRank)
 
 # allow debugging
 options(echo = TRUE)

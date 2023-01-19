@@ -2,7 +2,7 @@
 #- year (character): year in YYYY format
 #- seed (integer): seed for reproducibility
 
-library(LPCTA)
+library(BOCCRank)
 
 # allow debugging
 options(echo = TRUE)
