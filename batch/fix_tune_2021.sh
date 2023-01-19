@@ -8,7 +8,7 @@
 #SBATCH --partition shas
 #SBATCH --time=12:00:00
 #SBATCH --qos normal
-#SBATCH --chdir=/scratch/summit/cgibbs10@colostate.edu/projs/LP-CTA/
+#SBATCH --chdir=/projects/cgibbs10@colostate.edu/projs/BOCCRank/
 #SBATCH --output=data-raw/tune/fix21.out
 #SBATCH --error=data-raw/tune/fix21.err
 #SBATCH --mail-type=ALL
