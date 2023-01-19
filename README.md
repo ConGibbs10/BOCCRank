@@ -28,7 +28,6 @@ This will identify the optimal specification of the DART model, fit the model to
 After the model is fitted to the full set of 2021 clusters, it is used to estimate the potential for future discovery for each of the 2022 clusters. To conduct this estimation and ranking, run:
 
 ```
-Rscript inst/scripts/update_package.R
 sbatch rank_with_xgb_2021.sh
 ```
 
