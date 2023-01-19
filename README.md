@@ -14,7 +14,7 @@ We will illustrate how to rank the 2022 clusters using insights drawn from the 2
 
 Once added, create the following directories: (1) `data-raw/tune/2021/msgs` and (2) `data-raw/tune/2021/array`. Then, run:
 
-``` r
+```
 Rscript inst/scripts/update_package.R
 sbatch tune_2021.sh
 sbatch fix_tune_2021.sh
@@ -25,5 +25,11 @@ This will identify the optimal specification of the DART model, fit the model to
 
 ### Rank
 
-On
+After the model is fitted to the full set of 2021 clusters, it is used to estimate the potential for future discovery for each of the 2022 clusters. To conduct this estimation and ranking, run:
 
+```
+Rscript inst/scripts/update_package.R
+sbatch rank_with_xgb_2021.sh
+```
+
+This populates the `data-raw/rankings` directory with a tab separated value file of cluster rankings, `xgb_cluster_rankings_2022.tsv`.
