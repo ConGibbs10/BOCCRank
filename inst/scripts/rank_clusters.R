@@ -46,6 +46,7 @@ X <- prepare_features(
   ),
   verbose = TRUE
 )
+X <- dplyr::select(X, -dplyr::any_of(c('snowballing_pvalue')))
 
 # read the data with identifiers
 IDs <- prepare_features(
