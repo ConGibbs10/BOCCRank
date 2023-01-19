@@ -3,3 +3,11 @@
 .Rdata
 .httr-oauth
 .DS_Store
+
+*.tar.gz
+*.png
+
+**/msgs
+**/array
+*.err
+*.out
