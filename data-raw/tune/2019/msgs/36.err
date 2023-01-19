@@ -1,0 +1,21 @@
+During startup - Warning messages:
+1: Setting LC_CTYPE failed, using "C" 
+2: Setting LC_COLLATE failed, using "C" 
+3: Setting LC_TIME failed, using "C" 
+4: Setting LC_MESSAGES failed, using "C" 
+5: Setting LC_MONETARY failed, using "C" 
+6: Setting LC_PAPER failed, using "C" 
+7: Setting LC_MEASUREMENT failed, using "C" 
+Removed 24 fully connected clusters.
+Removed 17 variables.
+
+ *** caught segfault ***
+address 0x30, cause 'memory not mapped'
+
+Traceback:
+ 1: vroom_write_(xx, file, delim, eol, na_str = na, col_names = col_names,     append = append, options = opts, num_threads = num_threads,     progress = progress, buf_lines = buf_lines)
+ 2: vroom::vroom_write(x, file, delim = delim, col_names = col_names,     append = append, na = na, eol = eol, quote = quote, escape = escape,     num_threads = num_threads, progress = progress)
+ 3: write_delim(x, file, delim = "\t", na = na, append = append,     col_names = col_names, quote = quote, escape = escape, eol = eol,     num_threads = num_threads, progress = progress)
+ 4: readr::write_tsv(hgrid, file = fname)
+An irrecoverable exception occurred. R is aborting now ...
+/var/spool/slurmd/job12275283/slurm_script: line 22: 33991 Segmentation fault      (core dumped) Rscript inst/scripts/tune_xgboost.R --index=$SLURM_ARRAY_TASK_ID --year=2019 --nreps=100 --seed=6262

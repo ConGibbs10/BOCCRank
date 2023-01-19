@@ -1,0 +1,193 @@
+> 
+> # parse arguments
+> args <- R.utils::commandArgs(trailingOnly = FALSE, asValues = TRUE)
+> index <- as.integer(args$index)
+> year <- as.character(args$year)
+> nreps <- as.integer(args$nreps)
+> seed <- as.integer(args$seed)
+> 
+> # get number of cores
+> wkrs <- length(future::availableWorkers())
+> 
+> # set seed
+> set.seed(seed)
+> 
+> # read and prepare the cluster features
+> fp <- file.path('data-raw', 'features', year)
+> clf <-
++   read_features(fp, pattern = 'paris.', recursive = FALSE)
+> clf <- prepare_features(
++   clf,
++   feature_map = feature_map,
++   category = c('response', 'bio', 'net'),
++   type = 'list',
++   exclusions = c(
++     'mg2_pairs_count',
++     'mg2_not_pairs_count',
++     'mg2_portion_families_recovered',
++     'cluster_origin',
++     'bocc_origin',
++     'cluster_method',
++     'subcluster_method',
++     'year',
++     'IDs',
++     'go_sig_threshold',
++     'num_new_edges_on_any_node',
++     'HPO_ratio'
++   ),
++   verbose = TRUE
++ )
+c('HPO_ratio', 'IDs', 'bocc_origin', 'cluster_method', 'cluster_origin', 'go_sig_threshold', 'max_norm_cell_type_comma_sep_string', 'max_norm_disease_comma_sep_string', 'mg2_not_pairs_count', 'mg2_pairs_count', 'mg2_portion_families_recovered', 'num_new_edges_on_any_node', 'sig_go_enrichment_fdr_corrected_p_vals', 'sig_go_enrichment_p_vals', 'sig_go_enrichment_terms', 'subcluster_method', 'year')
+
+> 
+> # prepare grid of parameters
+> xgboost_params <- dials::parameters(
++   nrounds = dials::trees(),
++   eta = dials::learn_rate(),
++   gamma = dials::loss_reduction(),
++   dials::tree_depth(),
++   subsample = dials::sample_prop(),
++   rate_drop = dials::dropout(),
++   skip_drop = dials::dropout()
++ )
+> xgboost_params <-
++   dials::grid_max_entropy(xgboost_params, size = nreps)
+> 
+> # tune the dart booster
+> dart.param <-
++   list(
++     booster = "dart",
++     objective = "reg:logistic",
++     eval_metric = "rmse",
++     nthread = wkrs,
++     max_depth = xgboost_params$tree_depth[index],
++     eta = xgboost_params$eta[index],
++     gamma = xgboost_params$gamma[index],
++     subsample = xgboost_params$subsample[index],
++     rate_drop = xgboost_params$rate_drop[index],
++     skip_drop = xgboost_params$skip_drop[index]
++   )
+> dart.cv <- xgboost::xgb.cv(
++   params = dart.param,
++   nrounds = xgboost_params$nrounds[index],
++   data = as.matrix(clf[, -1]),
++   nfold = 5,
++   label = clf$snowballing_pvalue,
++   early_stopping_rounds = 50
++ )
+[1]	train-rmse:0.382665+0.001055	test-rmse:0.382643+0.004188 
+Multiple eval metrics are present. Will use test_rmse for early stopping.
+Will train until test_rmse hasn't improved in 50 rounds.
+
+[2]	train-rmse:0.382649+0.001055	test-rmse:0.382628+0.004188 
+[3]	train-rmse:0.382633+0.001055	test-rmse:0.382614+0.004188 
+[4]	train-rmse:0.382617+0.001054	test-rmse:0.382599+0.004188 
+[5]	train-rmse:0.382602+0.001054	test-rmse:0.382584+0.004187 
+[6]	train-rmse:0.382586+0.001054	test-rmse:0.382570+0.004187 
+[7]	train-rmse:0.382570+0.001054	test-rmse:0.382555+0.004187 
+[8]	train-rmse:0.382554+0.001054	test-rmse:0.382540+0.004187 
+[9]	train-rmse:0.382538+0.001054	test-rmse:0.382526+0.004187 
+[10]	train-rmse:0.382522+0.001054	test-rmse:0.382511+0.004186 
+[11]	train-rmse:0.382506+0.001054	test-rmse:0.382496+0.004186 
+[12]	train-rmse:0.382490+0.001053	test-rmse:0.382482+0.004186 
+[13]	train-rmse:0.382474+0.001053	test-rmse:0.382467+0.004186 
+[14]	train-rmse:0.382461+0.001054	test-rmse:0.382455+0.004185 
+[15]	train-rmse:0.382445+0.001054	test-rmse:0.382440+0.004185 
+[16]	train-rmse:0.382429+0.001053	test-rmse:0.382426+0.004185 
+[17]	train-rmse:0.382413+0.001053	test-rmse:0.382411+0.004185 
+[18]	train-rmse:0.382400+0.001056	test-rmse:0.382399+0.004182 
+[19]	train-rmse:0.382387+0.001055	test-rmse:0.382387+0.004182 
+[20]	train-rmse:0.382371+0.001055	test-rmse:0.382372+0.004182 
+[21]	train-rmse:0.382358+0.001057	test-rmse:0.382360+0.004180 
+[22]	train-rmse:0.382342+0.001057	test-rmse:0.382345+0.004180 
+[23]	train-rmse:0.382326+0.001057	test-rmse:0.382330+0.004180 
+[24]	train-rmse:0.382310+0.001057	test-rmse:0.382316+0.004180 
+[25]	train-rmse:0.382297+0.001059	test-rmse:0.382304+0.004177 
+[26]	train-rmse:0.382281+0.001059	test-rmse:0.382290+0.004177 
+[27]	train-rmse:0.382265+0.001059	test-rmse:0.382275+0.004177 
+[28]	train-rmse:0.382252+0.001059	test-rmse:0.382262+0.004177 
+[29]	train-rmse:0.382236+0.001059	test-rmse:0.382248+0.004177 
+[30]	train-rmse:0.382220+0.001058	test-rmse:0.382233+0.004177 
+[31]	train-rmse:0.382204+0.001058	test-rmse:0.382219+0.004177 
+[32]	train-rmse:0.382191+0.001058	test-rmse:0.382207+0.004177 
+[33]	train-rmse:0.382175+0.001058	test-rmse:0.382192+0.004177 
+[34]	train-rmse:0.382163+0.001060	test-rmse:0.382180+0.004175 
+[35]	train-rmse:0.382147+0.001060	test-rmse:0.382165+0.004175 
+[36]	train-rmse:0.382131+0.001059	test-rmse:0.382150+0.004175 
+[37]	train-rmse:0.382115+0.001059	test-rmse:0.382136+0.004174 
+[38]	train-rmse:0.382099+0.001059	test-rmse:0.382121+0.004174 
+[39]	train-rmse:0.382086+0.001060	test-rmse:0.382109+0.004174 
+[40]	train-rmse:0.382070+0.001060	test-rmse:0.382095+0.004173 
+[41]	train-rmse:0.382054+0.001060	test-rmse:0.382080+0.004173 
+[42]	train-rmse:0.382041+0.001062	test-rmse:0.382068+0.004171 
+[43]	train-rmse:0.382031+0.001062	test-rmse:0.382059+0.004170 
+[44]	train-rmse:0.382016+0.001062	test-rmse:0.382044+0.004170 
+[45]	train-rmse:0.382000+0.001062	test-rmse:0.382030+0.004170 
+[46]	train-rmse:0.381984+0.001062	test-rmse:0.382015+0.004170 
+[47]	train-rmse:0.381968+0.001062	test-rmse:0.382001+0.004170 
+[48]	train-rmse:0.381958+0.001064	test-rmse:0.381991+0.004168 
+[49]	train-rmse:0.381945+0.001066	test-rmse:0.381980+0.004165 
+[50]	train-rmse:0.381930+0.001066	test-rmse:0.381965+0.004165 
+[51]	train-rmse:0.381917+0.001069	test-rmse:0.381953+0.004162 
+[52]	train-rmse:0.381901+0.001069	test-rmse:0.381938+0.004162 
+[53]	train-rmse:0.381885+0.001069	test-rmse:0.381924+0.004162 
+[54]	train-rmse:0.381869+0.001069	test-rmse:0.381909+0.004161 
+[55]	train-rmse:0.381853+0.001069	test-rmse:0.381894+0.004161 
+[56]	train-rmse:0.381837+0.001069	test-rmse:0.381880+0.004161 
+[57]	train-rmse:0.381821+0.001068	test-rmse:0.381865+0.004161 
+[58]	train-rmse:0.381811+0.001069	test-rmse:0.381856+0.004160 
+[59]	train-rmse:0.381796+0.001069	test-rmse:0.381842+0.004160 
+[60]	train-rmse:0.381780+0.001069	test-rmse:0.381827+0.004160 
+[61]	train-rmse:0.381770+0.001063	test-rmse:0.381818+0.004165 
+[62]	train-rmse:0.381754+0.001063	test-rmse:0.381804+0.004165 
+[63]	train-rmse:0.381741+0.001063	test-rmse:0.381792+0.004164 
+[64]	train-rmse:0.381725+0.001063	test-rmse:0.381778+0.004164 
+[65]	train-rmse:0.381709+0.001063	test-rmse:0.381763+0.004164 
+[66]	train-rmse:0.381697+0.001065	test-rmse:0.381751+0.004162 
+[67]	train-rmse:0.381681+0.001065	test-rmse:0.381737+0.004162 
+[68]	train-rmse:0.381668+0.001065	test-rmse:0.381725+0.004162 
+[69]	train-rmse:0.381652+0.001065	test-rmse:0.381710+0.004162 
+[70]	train-rmse:0.381636+0.001064	test-rmse:0.381696+0.004162 
+[71]	train-rmse:0.381624+0.001065	test-rmse:0.381684+0.004161 
+[72]	train-rmse:0.381611+0.001066	test-rmse:0.381672+0.004160 
+[73]	train-rmse:0.381595+0.001066	test-rmse:0.381658+0.004160 
+[74]	train-rmse:0.381579+0.001066	test-rmse:0.381643+0.004160 
+[75]	train-rmse:0.381566+0.001066	test-rmse:0.381632+0.004159 
+[76]	train-rmse:0.381551+0.001066	test-rmse:0.381617+0.004159 
+[77]	train-rmse:0.381538+0.001068	test-rmse:0.381605+0.004157 
+[78]	train-rmse:0.381522+0.001068	test-rmse:0.381591+0.004156 
+[79]	train-rmse:0.381506+0.001068	test-rmse:0.381576+0.004156 
+[80]	train-rmse:0.381491+0.001068	test-rmse:0.381562+0.004156 
+[81]	train-rmse:0.381475+0.001068	test-rmse:0.381547+0.004156 
+[82]	train-rmse:0.381459+0.001068	test-rmse:0.381532+0.004156 
+[83]	train-rmse:0.381443+0.001068	test-rmse:0.381518+0.004156 
+[84]	train-rmse:0.381427+0.001067	test-rmse:0.381503+0.004155 
+[85]	train-rmse:0.381414+0.001062	test-rmse:0.381492+0.004160 
+[86]	train-rmse:0.381399+0.001062	test-rmse:0.381477+0.004160 
+[87]	train-rmse:0.381389+0.001059	test-rmse:0.381468+0.004163 
+[88]	train-rmse:0.381373+0.001059	test-rmse:0.381453+0.004162 
+[89]	train-rmse:0.381357+0.001059	test-rmse:0.381439+0.004162 
+[90]	train-rmse:0.381341+0.001059	test-rmse:0.381424+0.004162 
+[91]	train-rmse:0.381328+0.001053	test-rmse:0.381413+0.004167 
+[92]	train-rmse:0.381313+0.001053	test-rmse:0.381398+0.004167 
+[93]	train-rmse:0.381297+0.001052	test-rmse:0.381383+0.004167 
+[94]	train-rmse:0.381284+0.001055	test-rmse:0.381372+0.004164 
+[95]	train-rmse:0.381268+0.001055	test-rmse:0.381357+0.004164 
+[96]	train-rmse:0.381252+0.001055	test-rmse:0.381343+0.004164 
+[97]	train-rmse:0.381237+0.001055	test-rmse:0.381328+0.004164 
+[98]	train-rmse:0.381221+0.001055	test-rmse:0.381313+0.004163 
+[99]	train-rmse:0.381205+0.001055	test-rmse:0.381298+0.004163 
+[100]	train-rmse:0.381189+0.001054	test-rmse:0.381284+0.004163 
+[101]	train-rmse:0.381176+0.001057	test-rmse:0.381272+0.004160 
+[102]	train-rmse:0.381160+0.001057	test-rmse:0.381257+0.004160 
+[103]	train-rmse:0.381145+0.001057	test-rmse:0.381243+0.004160 
+[104]	train-rmse:0.381129+0.001057	test-rmse:0.381228+0.004160 
+[105]	train-rmse:0.381113+0.001057	test-rmse:0.381214+0.004159 
+[106]	train-rmse:0.381100+0.001060	test-rmse:0.381202+0.004156 
+[107]	train-rmse:0.381084+0.001059	test-rmse:0.381187+0.004156 
+> hgrid <-
++   dplyr::bind_cols(xgboost_params[index, ], dart.cv$evaluation_log[dart.cv$best_iteration, ], best_iter = dart.cv$best_iteration)
+> 
+> # write result
+> fname <- file.path('data-raw', 'tune', year, 'array', paste0('tune_', index, '.tsv'))
+> readr::write_tsv(hgrid, file = fname)

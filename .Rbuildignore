@@ -1,0 +1,6 @@
+^renv$
+^renv\.lock$
+^BOCCRank\.Rproj$
+^\.Rproj\.user$
+^data-raw$
+^batch$
