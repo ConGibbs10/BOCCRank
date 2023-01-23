@@ -24,7 +24,7 @@ sim_process <- function(geq = 3, rate = 1/40, window = 8, line = 8, eps = 1) {
 }
 
 # do simulations in parallel
-future::plan('multisession', workers = 28)
+future::plan('multisession', workers = 46)
 B <- 100000
 
 # compute one
