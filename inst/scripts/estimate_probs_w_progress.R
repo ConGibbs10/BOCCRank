@@ -4,7 +4,7 @@ options(echo = TRUE)
 # get number of cores
 parallel::detectCores()
 
-seed <- 6262
+seed <- 6546
 set.seed(seed)
 
 # function to simutate
@@ -57,7 +57,7 @@ mean(
     .options = furrr::furrr_options(seed = seed))
 )
 
-# simulate two - lower bound
+# simulate two - sharp lower bound
 simulate_lower_bound <- function(eps) {
   p <- progressr::progressor(steps = B)
 
@@ -73,5 +73,5 @@ simulate_lower_bound <- function(eps) {
   },
   .options = furrr::furrr_options(seed = seed))
 }
-progressr::with_progress({lb <- simulate_lower_bound(eps = 0.10)})
+progressr::with_progress({lb <- simulate_lower_bound(eps = 0.01)})
 mean(lb)
