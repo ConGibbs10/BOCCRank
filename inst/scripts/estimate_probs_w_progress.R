@@ -44,20 +44,8 @@ mean(
     .options = furrr::furrr_options(seed = seed))
 )
 
-# simulate two
-mean(
-  furrr::future_map_lgl(1:B, function(x)
-    sim_process(
-      geq = 3,
-      rate = 1 / 40,
-      window = 8,
-      line = 3560,
-      eps = 1
-    ),
-    .options = furrr::furrr_options(seed = seed))
-)
 
-# simulate two - sharp lower bound
+# simulate two
 simulate_lower_bound <- function(eps) {
   p <- progressr::progressor(steps = B)
 
@@ -75,3 +63,14 @@ simulate_lower_bound <- function(eps) {
 }
 progressr::with_progress({lb <- simulate_lower_bound(eps = 0.01)})
 mean(lb)
+
+
+# simulate three
+x_eps <- exp(seq(log(0.01), log(8), length.out = 10))
+y <- vector('numeric', length = length(x_eps))
+
+for(i in 1:length(x_eps)) {
+  cat(i, '\n')
+  progressr::with_progress({lb <- simulate_lower_bound(eps = x_eps[i])})
+  mean(lb)
+}
