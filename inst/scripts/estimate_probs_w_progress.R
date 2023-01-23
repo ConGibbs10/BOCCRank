@@ -2,8 +2,7 @@
 options(echo = TRUE)
 
 # get number of cores
-wkrs <- length(future::availableWorkers())
-wkrs
+parallel::detectCores()
 
 seed <- 6262
 set.seed(seed)
@@ -25,7 +24,7 @@ sim_process <- function(geq = 3, rate = 1/40, window = 8, line = 8, eps = 1) {
 }
 
 # do simulations in parallel
-future::plan('multisession', workers = wkrs)
+future::plan('multisession', workers = 28)
 B <- 100000
 
 # compute one
