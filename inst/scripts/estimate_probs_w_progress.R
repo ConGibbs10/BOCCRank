@@ -72,5 +72,5 @@ y <- vector('numeric', length = length(x_eps))
 for(i in 1:length(x_eps)) {
   cat(i, '\n')
   progressr::with_progress({lb <- simulate_lower_bound(eps = x_eps[i])})
-  mean(lb)
+  print(mean(lb))
 }
